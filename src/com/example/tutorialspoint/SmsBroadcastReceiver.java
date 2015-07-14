@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.widget.EditText;
 import android.widget.Toast;
 import android.location.Location;
 import android.location.LocationProvider;
@@ -19,6 +20,8 @@ import android.location.LocationListener;
 public class SmsBroadcastReceiver extends BroadcastReceiver {
 	//set up an empty location and an mContext
 	Location location;
+	static String Password = "Drake";
+	static String PhoneNumber;
 	
     public static final String SMS_BUNDLE = "pdus";
         
@@ -40,13 +43,14 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                 String address = smsMessage.getOriginatingAddress();
                 smsMessageStr += "SMS From: " + address + "\n";
                 //Get the latitude and longitude to return the google maps image of location
-                if((address.equals("+19702235598") || address.equals("+19705561977")) && smsBody.equals("Ebon"))
+                //if((address.equals("+19702235598") || address.equals("+19705561977")) && smsBody.equals(Password))
+                if(address.equals(PhoneNumber)&& smsBody.equals(Password))
                 {
                  
                  SmsManager smsManager = SmsManager.getDefault();
                  double latitude = location.getLatitude();
                  double longitude = location.getLongitude();
-                 smsManager.sendTextMessage(address, null, "Drake is at: " + "google.com/maps/@" + latitude + ","+ longitude + ",16z", null, null);
+                 smsManager.sendTextMessage(address, null, "I'm at: " + "google.com/maps/@" + latitude + ","+ longitude + ",16z", null, null);
                 }
                 smsMessageStr += smsBody + "\n";
             }
@@ -56,5 +60,21 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
             MainActivity inst = MainActivity.instance();
             inst.updateList(smsMessageStr);
         }
+    }
+    //public method used in main activity to set the pass phrase
+    public static void setPass(Context context, String PassPhrase){
+    	//Toast.makeText(context, "This is a test!", Toast.LENGTH_LONG).show();
+    	//set the global for password to what passphrase is
+    	Password = PassPhrase;
+    	Toast.makeText(context,"Set password to " + Password,Toast.LENGTH_LONG).show();
+    }
+    //public method used in main activity to set one of the phone numbers
+    public static void setPhoneNos(Context context, String PhoneNo){
+    	//Set numbers allowed to whatever is set inside of PhoneNo
+    	//Note: will want several numbers installed, so will have to make an array which is incremented
+    	//for each number saved. For now, one number alone
+    	PhoneNumber = "+" + PhoneNo;
+    	Toast.makeText(context, "set number to " + PhoneNo, Toast.LENGTH_LONG).show();
+    	
     }
 }
