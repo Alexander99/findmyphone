@@ -1,5 +1,7 @@
 package com.example.tutorialspoint;
 
+import java.util.ArrayList;
+import java.util.List;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
@@ -21,7 +23,8 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
 	//set up an empty location and an mContext
 	Location location;
 	static String Password = "Drake";
-	static String PhoneNumber;
+	static List<String> PhoneNumber = new ArrayList<String>();
+	//static String PhoneNumber;
 	
     public static final String SMS_BUNDLE = "pdus";
         
@@ -43,8 +46,8 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                 String address = smsMessage.getOriginatingAddress();
                 smsMessageStr += "SMS From: " + address + "\n";
                 //Get the latitude and longitude to return the google maps image of location
-                //if((address.equals("+19702235598") || address.equals("+19705561977")) && smsBody.equals(Password))
-                if(address.equals(PhoneNumber)&& smsBody.equals(Password))
+               // if(address.equals(PhoneNumber.get(0))&& smsBody.equals(Password))
+                if((PhoneNumber.contains(address) != false)&& smsBody.equals(Password))
                 {
                  
                  SmsManager smsManager = SmsManager.getDefault();
@@ -72,9 +75,9 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
     public static void setPhoneNos(Context context, String PhoneNo){
     	//Set numbers allowed to whatever is set inside of PhoneNo
     	//Note: will want several numbers installed, so will have to make an array which is incremented
-    	//for each number saved. For now, one number alone
-    	PhoneNumber = "+" + PhoneNo;
-    	Toast.makeText(context, "set number to " + PhoneNo, Toast.LENGTH_LONG).show();
+    	//Add a number to the list of strings available
+    	PhoneNumber.add("+" + PhoneNo);
+    	Toast.makeText(context, "added the number " + PhoneNo, Toast.LENGTH_LONG).show();
     	
     }
 }
