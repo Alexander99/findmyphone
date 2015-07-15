@@ -11,14 +11,6 @@
         android:text="Find My Phone BETA!"
         android:id="@+id/textView"
         android:layout_gravity="center_horizontal" />
- <!--  
-    <ListView
-        android:id="@+id/SMSList"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp" >
-    </ListView>
--->
  
     <EditText
         android:id="@+id/editText1"
@@ -26,7 +18,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="numberSigned|numberDecimal"         
-        android:text="Enter a number...">
+        android:hint="Enter a number...">
 
         <requestFocus />
     </EditText>
@@ -35,7 +27,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:text="Enter a passphrase...">
+        android:hint="Enter a passphrase...">
         <requestFocus />
     </EditText>
 
@@ -52,5 +44,12 @@
 	    android:layout_height="wrap_content"
 	    android:onClick="SAVEPHRASE"
 	    android:text="Press to save phrase" />
+  
+    <ListView
+        android:id="@+id/SMSList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp" >
+    </ListView>
 
 </LinearLayout>

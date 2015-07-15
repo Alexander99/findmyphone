@@ -2,6 +2,7 @@ package com.example.tutorialspoint;
 
 import android.support.v7.app.ActionBarActivity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.Cursor;
 import android.content.BroadcastReceiver;
 import android.net.Uri;
@@ -14,7 +15,13 @@ import android.widget.ListView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import java.util.ArrayList;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+
 import com.example.tutorialspoint.SmsBroadcastReceiver;
 
 public class MainActivity extends ActionBarActivity /*implements OnItemClickListener*/ {
@@ -24,10 +31,10 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
 	//edit text fields used to set up numbers and pass phrases
 	EditText Number;
 	EditText PassPhrase;
-	
+	File Phone_Number_list;
     private static MainActivity inst;
     ArrayList<String> smsMessagesList = new ArrayList<String>();
-    //ListView smsListView;
+    ListView smsListView;
     
     @SuppressWarnings("rawtypes")
 	ArrayAdapter arrayAdapter;
@@ -46,7 +53,8 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-      //  smsListView = (ListView) findViewById(R.id.SMSList);
+        //Used to 
+        smsListView = (ListView) findViewById(R.id.SMSList);
         //Set up the array adapter
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, smsMessagesList);
         //set the button that saves the number to determine what number can send the passphrase to
@@ -59,8 +67,9 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
         Number = (EditText) findViewById(R.id.editText1);
         PassPhrase = (EditText) findViewById(R.id.editText2);
         
-      //  smsListView.setAdapter(arrayAdapter);
-      //  smsListView.setOnItemClickListener(this);
+        //Set up the list of contacts that can send the text by accessing internal data
+        //will need to use a for loop to access
+        //Set up the passphrase that is sent to get 
         refreshSmsInbox();
     }
 
@@ -93,6 +102,16 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
     	//saveno should, whenever the button is hit, save the individual's number to
     	//a list of numbers that is searched whenever a text is received.
     	SmsBroadcastReceiver.setPhoneNos(this,Number.getText().toString());
+    	//Save the number used to the internal data; whenever created, this data
+    	
+    	if(Phone_Number_list.exists() == false)
+    	{
+    	 Phone_Number_list.createNewFile();
+    	}
+    	FileOutputStream FOS = openFileOutput("Phone_Number_list",Context.MODE_PRIVATE);
+    	//should be written to the list again. Should only be an append
+    	FOS.write((Number.getText().toString()).getBytes());
+    	FOS.close();
     }
     public void SAVEPHRASE(View view){
     	//savephrase should automatically save a passphrase to a global used
@@ -100,10 +119,12 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
     	//password = PassPhrase.getText().toString();
     	//Call upon the function in SmsBroadcastReceiver to store the password
     	SmsBroadcastReceiver.setPass(this,PassPhrase.getText().toString());
+    	//Save the phrase used to the internal data; whenever created, this data should
+    	//be written back to the phrase. Can be overwritten
     }
 
- /*   public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-        try {
+    public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+    /*    try {
             String[] smsMessages = smsMessagesList.get(pos).split("\n");
             String address = smsMessages[0];
             String smsMessage = "";
@@ -118,5 +139,5 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
             e.printStackTrace();
         }
     
-    }*/
+    */}
 }
