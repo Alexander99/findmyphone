@@ -44,12 +44,13 @@
 	    android:layout_height="wrap_content"
 	    android:onClick="SAVEPHRASE"
 	    android:text="Press to save phrase" />
-  
-    <ListView
-        android:id="@+id/SMSList"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp" >
-    </ListView>
 
+<!--  
+	<ListView
+	    android:id="@+id/SMSList"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_margin="5dp" >
+	</ListView>
+-->
 </LinearLayout>
