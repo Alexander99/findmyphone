@@ -15,6 +15,8 @@ import android.widget.ListView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.os.CountDownTimer;
+import android.app.AlarmManager;
 
 import java.util.ArrayList;
 import java.io.File;
@@ -79,6 +81,19 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
          }
          catch(Exception e){
          }
+        try{
+        	FileInputStream fin1 = openFileInput("mydata1");
+        	int c;
+        	String temp="";
+        	
+        	while( (c = fin1.read()) != -1){
+        		temp = temp + Character.toString((char)c);
+        	}
+        	SmsBroadcastReceiver.setPhoneNos(this,temp);
+        }
+        catch(Exception e){
+        	
+        }
         //Set up the list of contacts that can send the text by accessing internal data
         //will need to use a for loop to access
         //Set up the passphrase that is sent to get 
@@ -96,7 +111,7 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
         do {
         	 if(smsInboxCursor.getString(indexAddress).equals("+19702235598"))
              {
-              String str = "SMS From Mom: " + smsInboxCursor.getString(indexAddress) +
+              String str = "SMS From: " + smsInboxCursor.getString(indexAddress) +
                       "\n" + smsInboxCursor.getString(indexBody) + "\n";
               arrayAdapter.add(str);
              }
@@ -115,18 +130,18 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
     	//a list of numbers that is searched whenever a text is received.
     	SmsBroadcastReceiver.setPhoneNos(this,Number.getText().toString());
     	//Save the number used to the internal data; whenever created, this data
-    	/*try{
+    	try{
     	 
-    	 FileOutputStream FOS = openFileOutput("mydata",Context.MODE_WORLD_READABLE);
+    	 FileOutputStream FOS1 = openFileOutput("mydata1",Context.MODE_WORLD_READABLE);
     	 //should be written to the list again. Should only be an append
-    	 FOS.write((Number.getText().toString()).getBytes());
-    	 FOS.close();
+    	 FOS1.write((Number.getText().toString()).getBytes());
+    	 FOS1.close();
     	}
     	catch (Exception e) {
             // TO DO Auto-generated catch block
             e.printStackTrace();
          }
-    	*/
+    	
     }
     public void SAVEPHRASE(View view){
     	//savephrase should automatically save a passphrase to a global used
