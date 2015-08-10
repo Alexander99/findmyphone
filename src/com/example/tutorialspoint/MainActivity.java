@@ -3,6 +3,7 @@ package com.example.tutorialspoint;
 import android.support.v7.app.ActionBarActivity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.content.BroadcastReceiver;
 import android.net.Uri;
@@ -14,15 +15,19 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.os.CountDownTimer;
 import android.app.AlarmManager;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.OutputStream;
+import java.io.FileWriter;
+import java.io.FileReader;
 
 import com.example.tutorialspoint.SmsBroadcastReceiver;
 
@@ -30,14 +35,23 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
 	//buttons used to save data
 	Button saveNOButton;
 	Button savePhraseButton;
+	
+	//Textview, to count the number of items in TimerQueue
+	//static TextView timerTextView;
+	
 	//edit text fields used to set up numbers and pass phrases
 	EditText Number;
 	EditText PassPhrase;
-	File file;
+//	File file;
+	int NumberofNumbers = 1;
     private static MainActivity inst;
+    ArrayList<String> PhoneNos;
+    static List<String> QueueLoad;
+    int counter = 1;
     ArrayList<String> smsMessagesList = new ArrayList<String>();
-    ListView smsListView;
+    ListView numListView;
     
+  //DEFINING A STRING ADAPTER WHICH WILL HANDLE THE DATA OF THE LISTVIEW
     @SuppressWarnings("rawtypes")
 	ArrayAdapter arrayAdapter;
 
@@ -55,10 +69,17 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //Used to 
-      //  smsListView = (ListView) findViewById(R.id.SMSList);
+        PhoneNos = new ArrayList<String>();
+      //Used to 
         //Set up the array adapter
-        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, smsMessagesList);
+
+        //set up the listview
+        numListView = (ListView) findViewById(R.id.listView1);
+        arrayAdapter = new ArrayAdapter<String>(this, 
+        		android.R.layout.simple_list_item_1, PhoneNos);
+        numListView.setAdapter(arrayAdapter);
+       // numListView.setOnItemClickListener((OnItemClickListener) this);
+
         //set the button that saves the number to determine what number can send the passphrase to
         //get the image
         saveNOButton = (Button) findViewById(R.id.button1);
@@ -68,9 +89,21 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
         //set up edit text fields
         Number = (EditText) findViewById(R.id.editText1);
         PassPhrase = (EditText) findViewById(R.id.editText2);
+        
+        
         //load the recently previous passcode used
         try{
+        	FileInputStream countIn = openFileInput("CounterData");
+        	counter = countIn.read();
+        	countIn.close();
+        	
+        }
+        catch(Exception e){
+        	
+        }
+        try{
             FileInputStream fin = openFileInput("mydata");
+            
             int c;
             String temp="";
             
@@ -78,25 +111,36 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
                temp = temp + Character.toString((char)c);
             }
         	SmsBroadcastReceiver.setPass(this,temp);
+        	fin.close();
          }
          catch(Exception e){
          }
-        try{
-        	FileInputStream fin1 = openFileInput("mydata1");
+        
+        while(NumberofNumbers <= counter)
+        {
+         try{
+        	FileInputStream fin1 = openFileInput("PhoneNumber" + NumberofNumbers);
         	int c;
         	String temp="";
         	
         	while( (c = fin1.read()) != -1){
         		temp = temp + Character.toString((char)c);
+        
         	}
         	SmsBroadcastReceiver.setPhoneNos(this,temp);
-        }
-        catch(Exception e){
+        	PhoneNos.add(temp);
+        	fin1.close();
         	
+         }
+         catch(Exception e){
+        	
+         }
+         NumberofNumbers++;
         }
+      
         //Set up the list of contacts that can send the text by accessing internal data
         //will need to use a for loop to access
-        //Set up the passphrase that is sent to get 
+        //Set up the passphrase that is sent to get
         refreshSmsInbox();
     }
 
@@ -120,8 +164,8 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
     }
 
     @SuppressWarnings("unchecked")
-	public void updateList(final String smsMessage) {
-        arrayAdapter.insert(smsMessage, 0);
+	public void updateList(final String smsAddress) {
+        arrayAdapter.insert(smsAddress, 0);
         arrayAdapter.notifyDataSetChanged();
     }
     public void SAVENO(View view){
@@ -130,17 +174,31 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
     	//a list of numbers that is searched whenever a text is received.
     	SmsBroadcastReceiver.setPhoneNos(this,Number.getText().toString());
     	//Save the number used to the internal data; whenever created, this data
+    	PhoneNos.add(Number.getText().toString());
+    	//int NumberofNumbers = PhoneNos.size();
+    	counter++;
+    	
     	try{
-    	 
-    	 FileOutputStream FOS1 = openFileOutput("mydata1",Context.MODE_WORLD_READABLE);
-    	 //should be written to the list again. Should only be an append
-    	 FOS1.write((Number.getText().toString()).getBytes());
-    	 FOS1.close();
-    	}
+    		//need to save each number separately
+    	
+    	    FileOutputStream FOS1 = openFileOutput("PhoneNumber" + counter,Context.MODE_WORLD_READABLE);
+    	    FOS1.write(Number.getText().toString().getBytes());
+    	    FOS1.close();
+    	    
+    	    
+    	 }
     	catch (Exception e) {
             // TO DO Auto-generated catch block
             e.printStackTrace();
          }
+    	try{
+    		//count up to determine how many numbers have been saved, for next time
+    		FileOutputStream CountStream = openFileOutput("CounterData",Context.MODE_WORLD_READABLE);
+    		CountStream.write(counter);
+    	}
+    	catch (Exception e) {
+    		e.printStackTrace();
+    	}
     	
     }
     public void SAVEPHRASE(View view){
@@ -163,23 +221,25 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
                e.printStackTrace();
             }
     }
-
+   public void EDITNUMBERS(View view){
+	   //editnumbers button should take us to DeleteNoActivity, where we can delete
+	   //numbers we select from a radio button
+	   Intent jumpIntent = new Intent(this, DeleteNoActivity.class);
+	   startActivity(jumpIntent);
+   }
    
     public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-    /*    try {
-            String[] smsMessages = smsMessagesList.get(pos).split("\n");
-            String address = smsMessages[0];
-            String smsMessage = "";
-            for (int i = 1; i < smsMessages.length; ++i) {
-                smsMessage += smsMessages[i];
-            }
+    	try {
+            for (int numindex = 0; numindex < PhoneNos.size();numindex++)
+            {
+            String address = PhoneNos.get(numindex);
+            
+            
 
-            String smsMessageStr = address + "\n";
-            smsMessageStr += smsMessage;
-            Toast.makeText(this, smsMessageStr, Toast.LENGTH_SHORT).show();
+            }
+            Toast.makeText(this, "test", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
-    
-    */}
+    }
 }

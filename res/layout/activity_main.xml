@@ -44,13 +44,35 @@
 	    android:layout_height="wrap_content"
 	    android:onClick="SAVEPHRASE"
 	    android:text="Press to save phrase" />
-
-<!--  
-	<ListView
-	    android:id="@+id/SMSList"
+	
+	<Button 
+	    android:id="@+id/button3"
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
-	    android:layout_margin="5dp" >
+	    android:onClick="EDITNUMBERS"
+	    android:text="Press to edit numbers"/>
+	
+<!--  	<TextView
+	    android:id="@+id/TextView2"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:textAppearance="?android:attr/textAppearanceMedium"
+	    android:layout_gravity="center_horizontal"
+	    android:text="This counts the number of items in timerqueue. When you get a text, this number should increase"
+	    />
+	-->
+	<ListView
+	    android:id="@+id/listView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:clickable="true">
+        
+	    
 	</ListView>
--->
+	
+	
+	
+	
 </LinearLayout>

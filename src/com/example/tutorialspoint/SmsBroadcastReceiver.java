@@ -1,5 +1,6 @@
 package com.example.tutorialspoint;
 
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 import android.location.Location;
@@ -21,7 +23,12 @@ import android.location.LocationManager;
 import android.location.LocationListener;
 import android.app.AlarmManager;
 
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.util.Timer;
+
+
+
 
 
 
@@ -37,19 +44,17 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
 	private final long interval = 1000;
 	static String Password = "Drake";
 	static List<String> PhoneNumber = new ArrayList<String>();
+	static List<String> TimerQueue = new ArrayList<String>();
+	static int TimerQueueSize = 0;
 	//static String PhoneNumber;
 	static String allowedAddress;
 	static String oldAddress;
     public static final String SMS_BUNDLE = "pdus";
     String smsBody;
+    static boolean isTimerActive = false;
         
     @TargetApi(Build.VERSION_CODES.DONUT) @SuppressLint("NewApi") 
       public void onReceive(Context context, Intent intent) {
-    	   //Start App On Boot Start Up
-    	
- /*   	Intent intent2 = new Intent(context, MainActivity.class);  
-        intent2.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent2);*/
     	
     	//Set up the countdown timer for the second text
 		CountDownTimer = new MalibuCountDownTimer(startTime, interval);
@@ -58,8 +63,7 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
 
     	
     	//set up location manager to get the location of the phone
-        LocationManager locationManager = (LocationManager) context
-        		.getSystemService(Context.LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         //fill location with the last known location of the phone, which should be the current location after being texted
         location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         
@@ -71,10 +75,17 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                 SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) sms[i]);
 
                 smsBody = smsMessage.getMessageBody();
+                
+                //as soon as we get the message, we want to abort the broadcast so
+                //that it doesn't show up in the user's inbox
+                if(smsMessage.getMessageBody().contains("Ebon")) {
+                    abortBroadcast();
+                }
                 String address = smsMessage.getOriginatingAddress();
+                //Add address to queue, increment items in queue by 1
+                
                 smsMessageStr += "SMS From: " + address + "\n";
                 //Get the latitude and longitude to return the google maps image of location
-               // if(address.equals(PhoneNumber.get(0))&& smsBody.equals(Password))
                 if((PhoneNumber.contains(address) != false)&& smsBody.equals(Password))
                 {
                  
@@ -82,23 +93,41 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                  double latitude = location.getLatitude();
                  double longitude = location.getLongitude();
                  allowedAddress = address;
-                 smsManager.sendTextMessage(address, null, "I'm at: " + "google.com/maps/@" + latitude + ","+ longitude + ",16z", null, null);
+                //send the text out!
+                 smsManager.sendTextMessage(address, null, "I'm at: " + "https://google.com/maps?q="+latitude+","+longitude+"+(My+Point)&z=14&ll="+latitude+","+longitude,null,null);
+                 
+                 //update the queue for the location update
+                 TimerQueue.add("+"+address);
+                 TimerQueueSize++;
+                 //MainActivity.CountTimerQueue();
+                 
+                 //Do the update
+                 //Need to set count down timer so that it goes off once, and then is done
+                 //best acheived by checking for the proper text. else, all texts will trigger this
+               
+                 if(isTimerActive == false)
+                 {
+                	 isTimerActive = true;
+                	 CountDownTimer.start();
+                 }
+                 
                 }
                 smsMessageStr += smsBody + "\n";
             }
             
+          /*  if((PhoneNumber.contains(allowedAddress) != false)&& (smsBody.equals(Password))&&(isTimerActive != true))
+            {
+             isTimerActive = true;
+             CountDownTimer.start();
+            }
+          */ 
             //this will update the UI with message
             MainActivity inst = MainActivity.instance();
             inst.updateList(smsMessageStr);
-            //Do the update
-            oldAddress = allowedAddress;
-            //Need to set count down timer so that it goes off once, and then is done
-            //best acheived by checking for the proper text. else, all texts will trigger this
-            if((PhoneNumber.contains(allowedAddress) != false)&& smsBody.equals(Password))
-            {
-             CountDownTimer.start();
-            }
+            
         }
+        
+        
     }
     //public method used in main activity to set the pass phrase
     public static void setPass(Context context, String PassPhrase){
@@ -120,6 +149,14 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
     	//Use to kill the timer once it is down counting down
     	CountDownTimer.cancel();
     }
+    public void loadQ(List<String> Queue){
+    	//load the queue from last time, remembering to load old information
+    	 //for each element in queue, load one by one into TimerQueue
+    	 //each time we load an element, increment itemsInQueue by 1
+    	
+    }
+    //Unfortunately, MalibuCountDownTimer seems necessary, even though it seems
+    //like it can easily be changed
     public class MalibuCountDownTimer extends CountDownTimer{
     	//Function called if the location of the person changes, meant to inform
     	//the person who texted a while back that the location has changed
@@ -148,17 +185,26 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
 				(newLocation.getLongitude() < (location.getLongitude() + 0.0001)))
 			
 	    	{
-				//inform that the text was not sent
+				//inform that the text was not sent, and restart the timer
 				 Toast.makeText(context, "Text not sent; have not moved from spot since the last " + startTime/(60*1000) + " minutes", Toast.LENGTH_LONG).show();
 				 CountDownTimer.start();
 	    	}
 			else
 			{
 				//send the message indicating the movement
+				//Note, this has to be done for every number that asks, so itemsInQueue should increase over time
+				for(int numberIndex = 0; numberIndex < TimerQueue.size(); numberIndex++)
+				{
+				 //After the 5 minutes, if outside the range, send everybody who asked a text!
+				 //Completely dependent on the receiver
 		    	 SmsManager smsManager = SmsManager.getDefault();
-		    	 smsManager.sendTextMessage(oldAddress, null, "I just moved; I'm now at: " + "google.com/maps/@" + newLocation.getLatitude() + ","+ newLocation.getLongitude() + ",16z", null, null);
-		    	 //Toast to check new location
-		    	 killTimer();
+		    	 smsManager.sendTextMessage(TimerQueue.get(numberIndex), null, "I just moved; I'm now at: https://google.com/maps?q="+newLocation.getLatitude()+","+newLocation.getLongitude()+"+(My+Point)&z=14&ll="+newLocation.getLatitude()+","+newLocation.getLongitude(),null,null);
+				}
+				TimerQueue.clear();
+				//set the timer to deactive so a new timer can start
+				isTimerActive = false;
+				//kill the timer so it doesn't repeat itself
+				killTimer();
 			
 			}
 			
