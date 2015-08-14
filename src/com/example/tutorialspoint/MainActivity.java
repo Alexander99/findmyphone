@@ -1,6 +1,7 @@
 package com.example.tutorialspoint;
 
 import android.support.v7.app.ActionBarActivity;
+import android.telephony.SmsManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -50,6 +51,8 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
     int counter = 1;
     ArrayList<String> smsMessagesList = new ArrayList<String>();
     ListView numListView;
+    ArrayList <String> PassPhrases;
+
     
   //DEFINING A STRING ADAPTER WHICH WILL HANDLE THE DATA OF THE LISTVIEW
     @SuppressWarnings("rawtypes")
@@ -70,6 +73,8 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         PhoneNos = new ArrayList<String>();
+		PassPhrases = new ArrayList<String>(20);
+
       //Used to 
         //Set up the array adapter
 
@@ -78,16 +83,24 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
         arrayAdapter = new ArrayAdapter<String>(this, 
         		android.R.layout.simple_list_item_1, PhoneNos);
         numListView.setAdapter(arrayAdapter);
-       // numListView.setOnItemClickListener((OnItemClickListener) this);
-
+        
+        numListView.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            	//Initialize and set up a sendable addr
+            	String SendableAddr = "";
+            	SendableAddr = PhoneNos.get(position);
+            	//Set up function link to "clickable"
+                ListClickable(SendableAddr,position);   
+                }
+              });
         //set the button that saves the number to determine what number can send the passphrase to
         //get the image
-        saveNOButton = (Button) findViewById(R.id.button1);
+        //saveNOButton = (Button) findViewById(R.id.button1);
         //set the button that saves the passphrase to determine what is sent to get the image
         savePhraseButton = (Button) findViewById(R.id.button2);
         
         //set up edit text fields
-        Number = (EditText) findViewById(R.id.editText1);
+        //Number = (EditText) findViewById(R.id.editText1);
         PassPhrase = (EditText) findViewById(R.id.editText2);
         
         
@@ -137,29 +150,31 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
          }
          NumberofNumbers++;
         }
-      
+        for(int phraseCounter = 0; phraseCounter < counter;phraseCounter++)
+        {
+         try{
+        	 FileInputStream fin2 = openFileInput("PhraseSave" +phraseCounter);
+        	 int c;
+        	 String temp="";
+        	 
+        	 while( (c = fin2.read()) != -1){
+        		 temp = temp+Character.toString((char) c);
+        		 
+        	 }
+        	 //Toast.makeText(this, "counter: " + phraseCounter, Toast.LENGTH_LONG).show();
+        	 
+        	 PassPhrases.add(phraseCounter,temp);
+        	// Toast.makeText(this, PassPhrases.get(phraseCounter) + " Counter: " +phraseCounter, Toast.LENGTH_LONG).show();
+        	 fin2.close();
+            }
+         catch(Exception e)
+         {
+        	
+         }
+        }
         //Set up the list of contacts that can send the text by accessing internal data
         //will need to use a for loop to access
         //Set up the passphrase that is sent to get
-        refreshSmsInbox();
-    }
-
-    @SuppressWarnings("unchecked")
-	public void refreshSmsInbox() {
-        ContentResolver contentResolver = getContentResolver();
-        Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null, null);
-        int indexBody = smsInboxCursor.getColumnIndex("body");
-        int indexAddress = smsInboxCursor.getColumnIndex("address");
-        if (indexBody < 0 || !smsInboxCursor.moveToFirst()) return;
-        arrayAdapter.clear();
-        do {
-        	 if(smsInboxCursor.getString(indexAddress).equals("+19702235598"))
-             {
-              String str = "SMS From: " + smsInboxCursor.getString(indexAddress) +
-                      "\n" + smsInboxCursor.getString(indexBody) + "\n";
-              arrayAdapter.add(str);
-             }
-           } while (smsInboxCursor.moveToNext());
         
     }
 
@@ -168,39 +183,7 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
         arrayAdapter.insert(smsAddress, 0);
         arrayAdapter.notifyDataSetChanged();
     }
-    public void SAVENO(View view){
-    	//Toast.makeText(this, "This is a test!", Toast.LENGTH_LONG).show();
-    	//saveno should, whenever the button is hit, save the individual's number to
-    	//a list of numbers that is searched whenever a text is received.
-    	SmsBroadcastReceiver.setPhoneNos(this,Number.getText().toString());
-    	//Save the number used to the internal data; whenever created, this data
-    	PhoneNos.add(Number.getText().toString());
-    	//int NumberofNumbers = PhoneNos.size();
-    	counter++;
-    	
-    	try{
-    		//need to save each number separately
-    	
-    	    FileOutputStream FOS1 = openFileOutput("PhoneNumber" + counter,Context.MODE_WORLD_READABLE);
-    	    FOS1.write(Number.getText().toString().getBytes());
-    	    FOS1.close();
-    	    
-    	    
-    	 }
-    	catch (Exception e) {
-            // TO DO Auto-generated catch block
-            e.printStackTrace();
-         }
-    	try{
-    		//count up to determine how many numbers have been saved, for next time
-    		FileOutputStream CountStream = openFileOutput("CounterData",Context.MODE_WORLD_READABLE);
-    		CountStream.write(counter);
-    	}
-    	catch (Exception e) {
-    		e.printStackTrace();
-    	}
-    	
-    }
+    
     public void SAVEPHRASE(View view){
     	//savephrase should automatically save a passphrase to a global used
     	//whenever the text is sent
@@ -221,6 +204,7 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
                e.printStackTrace();
             }
     }
+    
    public void EDITNUMBERS(View view){
 	   //editnumbers button should take us to DeleteNoActivity, where we can delete
 	   //numbers we select from a radio button
@@ -228,18 +212,12 @@ public class MainActivity extends ActionBarActivity /*implements OnItemClickList
 	   startActivity(jumpIntent);
    }
    
-    public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-    	try {
-            for (int numindex = 0; numindex < PhoneNos.size();numindex++)
-            {
-            String address = PhoneNos.get(numindex);
-            
-            
-
-            }
-            Toast.makeText(this, "test", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void ListClickable(String address,int position) {
+    	//used to send a text to the specific number
+    	//Depending on the item clicked, sends a text to that number in question by using the address
+    	SmsManager smsManager = SmsManager.getDefault();
+    	//Toast.makeText(this, "Position: " + position, Toast.LENGTH_LONG).show();
+    	//Toast.makeText(this, PassPhrases.get(position), Toast.LENGTH_LONG).show();
+    	smsManager.sendTextMessage(address, null, PassPhrases.get(position), null, null);
     }
 }

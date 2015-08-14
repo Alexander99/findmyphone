@@ -80,11 +80,20 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                 //that it doesn't show up in the user's inbox
                 if(smsMessage.getMessageBody().contains("Ebon")) {
                     abortBroadcast();
+                    try{
+                    	//to delete an sms, use the below function to do so.
+                    	//URL must be "content://sms/" + id (where id is the size of the text to remove)
+                    	String URL = "content://sms/" + smsBody.length();
+                    	//where is date=?
+                    	//selectionArgs is new String[] { c.getString(4) }
+                    	
+                    	//context.getContentResolver().delete(url, where, selectionArgs)
+                    }
+                    catch(Exception e){
+                    	
+                    }
                 }
                 String address = smsMessage.getOriginatingAddress();
-                //Add address to queue, increment items in queue by 1
-                
-                smsMessageStr += "SMS From: " + address + "\n";
                 //Get the latitude and longitude to return the google maps image of location
                 if((PhoneNumber.contains(address) != false)&& smsBody.equals(Password))
                 {
@@ -112,22 +121,9 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                  }
                  
                 }
-                smsMessageStr += smsBody + "\n";
-            }
-            
-          /*  if((PhoneNumber.contains(allowedAddress) != false)&& (smsBody.equals(Password))&&(isTimerActive != true))
-            {
-             isTimerActive = true;
-             CountDownTimer.start();
-            }
-          */ 
-            //this will update the UI with message
-            MainActivity inst = MainActivity.instance();
-            inst.updateList(smsMessageStr);
-            
+             
+            }    
         }
-        
-        
     }
     //public method used in main activity to set the pass phrase
     public static void setPass(Context context, String PassPhrase){
@@ -142,7 +138,7 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
     	//Note: will want several numbers installed, so will have to make an array which is incremented
     	//Add a number to the list of strings available
     	PhoneNumber.add("+" + PhoneNo);
-    	Toast.makeText(context, "added the number " + PhoneNo, Toast.LENGTH_LONG).show();
+    	//Toast.makeText(context, "added the number " + PhoneNo, Toast.LENGTH_LONG).show();
     	
     }
     public void killTimer(){
